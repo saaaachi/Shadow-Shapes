@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shadow Shapes - 第37弾</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #f3e5f5; font-family: sans-serif; touch-action: none; }
+        #ad-top, #ad-bottom { position: fixed; left: 0; width: 100%; height: 150px; background: #333; z-index: 100; display: flex; align-items: center; justify-content: center; }
+        #ad-top { top: 0; } #ad-bottom { bottom: 0; }
+        iframe { border: none; width: 100%; height: 150px; }
+        
+        #main-container { margin-top: 150px; height: calc(100vh - 300px); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-around; }
+        
+        #ui-layer { width: 100%; display: flex; justify-content: space-around; padding: 5px 0; }
+        .ui-box { padding: 4px 15px; border-radius: 15px; font-weight: bold; font-size: 18px; color: #7b1fa2; background: white; box-shadow: 0 2px #ce93d8; }
+
+        /* お題の図形 */
+        #target-display { font-size: 80px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); transition: transform 0.3s; }
+
+        /* 選択肢のシルエット */
+        #choices { display: flex; gap: 15px; padding: 10px; }
+        .choice-btn { 
+            width: 70px; height: 70px; background: #4a148c; color: #4a148c; /* 文字色を背景と同じにしてシルエット化 */
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+            font-size: 40px; cursor: pointer; box-shadow: 0 4px #7b1fa2; border: none;
+        }
+
+        #end-menu { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.95); display: none; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 100; 
+        }
+        .menu-btn { width: 220px; padding: 15px; margin: 10px; font-size: 20px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; text-decoration: none; text-align: center; }
+        #retry-btn { background: #9c27b0; color: white; box-shadow: 0 4px #7b1fa2; }
+    </style>
+</head>
+<body>
+    <div id="ad-top"><iframe id="frame-top" src="ad.html"></iframe></div>
+    <div id="ad-bottom"><iframe id="frame-bottom" src="ad.html"></iframe></div>
+    
+    <div id="main-container">
+        <div id="ui-layer">
+            <div id="score-display" class="ui-box">SCORE: 0</div>
+            <div id="timer-display" class="ui-box">TIME: 5.0</div>
+        </div>
+        
+        <div style="font-weight:bold; color:#7b1fa2;">同じ形の「影」を選べ！</div>
+        <div id="target-display">❓</div>
+        <div id="choices"></div>
+
+        <div id="end-menu">
+            <h2 id="result-msg" style="color:#7b1fa2; text-align:center;">Shadow Shapes</h2>
+            <button id="retry-btn" class="menu-btn" onclick="startNewGame()">スタート！</button>
+            <a href="https://saaaachi.github.io/Memory-Math/" class="menu-btn" style="background:#ff4081; color:white;">他のゲームはこちら</a>
+        </div>
+    </div>
+
+    <script>
+        let score = 0, gameActive = false, timeLeft = 5.0, timer;
+        const shapes = ['⭐', '❤️', '🌙', '☁️', '☀️', '🌸', '💎', '🍀', '🍎', '🐱'];
+        let targetShape = "";
+
+        function startNewGame() {
+            document.getElementById("end-menu").style.display = "none";
+            score = 0; gameActive = true;
+            nextLevel();
+        }
+
+        function nextLevel() {
+            if(!gameActive) return;
+            timeLeft = Math.max(1.5, 5.0 - (score * 0.2));
+            updateUI();
+            
+            // お題の決定
+            targetShape = shapes[Math.floor(Math.random() * shapes.length)];
+            const display = document.getElementById("target-display");
+            display.innerText = targetShape;
+            display.style.transform = `rotate(${Math.floor(Math.random() * 360)}deg)`; // お題を回転させる
+
+            // 選択肢の作成
+            const choicesDiv = document.getElementById("choices");
+            choicesDiv.innerHTML = "";
+            const currentChoices = [targetShape];
+            while(currentChoices.length < 3) {
+                const s = shapes[Math.floor(Math.random() * shapes.length)];
+                if(!currentChoices.includes(s)) currentChoices.push(s);
+            }
+            currentChoices.sort(() => Math.random() - 0.5);
+
+            currentChoices.forEach(s => {
+                const btn = document.createElement("button");
+                btn.className = "choice-btn";
+                btn.innerText = s;
+                btn.onclick = () => check(s);
+                choicesDiv.appendChild(btn);
+            });
+
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft -= 0.1;
+                updateUI();
+                if(timeLeft <= 0) gameOver("時間切れ！⏳");
+            }, 100);
+        }
+
+        function check(s) {
+            if(!gameActive) return;
+            if(s === targetShape) {
+                score++;
+                nextLevel();
+            } else {
+                gameOver("形がちがうよ！😱");
+            }
+        }
+
+        function updateUI() {
+            document.getElementById("score-display").innerText = "SCORE: " + score;
+            document.getElementById("timer-display").innerText = "TIME: " + Math.max(0, timeLeft).toFixed(1);
+        }
+
+        function gameOver(msg) {
+            gameActive = false;
+            clearInterval(timer);
+            document.getElementById("result-msg").innerText = msg + "\nSCORE: " + score;
+            document.getElementById("end-menu").style.display = "flex";
+        }
+
+        function refreshAds() {
+            document.getElementById('frame-top').src += "";
+            document.getElementById('frame-bottom').src += "";
+        }
+        setInterval(refreshAds, 30000);
+
+        window.onload = () => { document.getElementById("end-menu").style.display = "flex"; };
+    </script>
+</body>
+</html>
