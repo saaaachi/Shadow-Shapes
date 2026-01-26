@@ -15,15 +15,20 @@
         #ui-layer { width: 100%; display: flex; justify-content: space-around; padding: 5px 0; }
         .ui-box { padding: 4px 15px; border-radius: 15px; font-weight: bold; font-size: 18px; color: #7b1fa2; background: white; box-shadow: 0 2px #ce93d8; }
 
-        /* お題の図形 */
+        /* お題の図形（こっちはフルカラー） */
         #target-display { font-size: 80px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); transition: transform 0.3s; }
 
         /* 選択肢のシルエット */
         #choices { display: flex; gap: 15px; padding: 10px; }
         .choice-btn { 
-            width: 70px; height: 70px; background: #4a148c; color: #4a148c; /* 文字色を背景と同じにしてシルエット化 */
-            border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-            font-size: 40px; cursor: pointer; box-shadow: 0 4px #7b1fa2; border: none;
+            width: 75px; height: 75px; background: #ffffff; 
+            border-radius: 15px; display: flex; align-items: center; justify-content: center; 
+            font-size: 40px; cursor: pointer; box-shadow: 0 4px #ce93d8; border: 2px solid #7b1fa2;
+        }
+        
+        /* 絵文字を真っ黒なシルエットにする魔法のCSS */
+        .silhouette {
+            filter: brightness(0); /* これで真っ黒になります */
         }
 
         #end-menu { 
@@ -52,13 +57,26 @@
         <div id="end-menu">
             <h2 id="result-msg" style="color:#7b1fa2; text-align:center;">Shadow Shapes</h2>
             <button id="retry-btn" class="menu-btn" onclick="startNewGame()">スタート！</button>
-            <a href="https://saaaachi.github.io/Memory-Math/" class="menu-btn" style="background:#ff4081; color:white;">他のゲームはこちら</a>
+            <a href="<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #333; }
+    </style>
+</head>
+<body>
+   <!-- admax -->
+<script src="https://adm.shinobi.jp/s/c7ced7f77151017f32f16a375f73e1cd"></script>
+<!-- admax --> 
+</body>
+</html>" class="menu-btn" style="background:#ff4081; color:white;">他のゲームはこちら</a>
         </div>
     </div>
 
     <script>
         let score = 0, gameActive = false, timeLeft = 5.0, timer;
-        const shapes = ['⭐', '❤️', '🌙', '☁️', '☀️', '🌸', '💎', '🍀', '🍎', '🐱'];
+        const shapes = ['⭐', '❤️', '🌙', '☁️', '☀️', '🌸', '💎', '🍀', '🍎', '🐱', '🦋', '🐘'];
         let targetShape = "";
 
         function startNewGame() {
@@ -69,16 +87,17 @@
 
         function nextLevel() {
             if(!gameActive) return;
-            timeLeft = Math.max(1.5, 5.0 - (score * 0.2));
+            // スコアが上がると時間が短くなる（最低1.2秒）
+            timeLeft = Math.max(1.2, 5.0 - (score * 0.15));
             updateUI();
             
-            // お題の決定
             targetShape = shapes[Math.floor(Math.random() * shapes.length)];
             const display = document.getElementById("target-display");
             display.innerText = targetShape;
-            display.style.transform = `rotate(${Math.floor(Math.random() * 360)}deg)`; // お題を回転させる
+            // お題を 0, 90, 180, 270度のいずれかに回転（よりパズルらしく）
+            const rotations = [0, 90, 180, 270];
+            display.style.transform = `rotate(${rotations[Math.floor(Math.random()*4)]}deg)`;
 
-            // 選択肢の作成
             const choicesDiv = document.getElementById("choices");
             choicesDiv.innerHTML = "";
             const currentChoices = [targetShape];
@@ -91,7 +110,8 @@
             currentChoices.forEach(s => {
                 const btn = document.createElement("button");
                 btn.className = "choice-btn";
-                btn.innerText = s;
+                // spanタグを入れて、その中の絵文字だけを真っ黒にする
+                btn.innerHTML = `<span class="silhouette">${s}</span>`;
                 btn.onclick = () => check(s);
                 choicesDiv.appendChild(btn);
             });
