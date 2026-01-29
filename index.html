@@ -5,87 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Shadow Shapes - 第37弾</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #f3e5f5; font-family: sans-serif; touch-action: none; }
-        #ad-top, #ad-bottom { position: fixed; left: 0; width: 100%; height: 150px; background: #333; z-index: 100; display: flex; align-items: center; justify-content: center; }
+        * { box-sizing: border-box; }
+        body { margin: 0; overflow: hidden; background: #f3e5f5; font-family: sans-serif; touch-action: none; position: fixed; width: 100%; height: 100%; }
+        
+        /* 広告枠：100px */
+        #ad-top, #ad-bottom { position: fixed; left: 0; width: 100%; height: 100px; background: #333; z-index: 100; display: flex; align-items: center; justify-content: center; }
         #ad-top { top: 0; } #ad-bottom { bottom: 0; }
-        iframe { border: none; width: 100%; height: 150px; }
-        
-        #main-container { margin-top: 150px; height: calc(100vh - 300px); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-around; }
-        
-        #ui-layer { width: 100%; display: flex; justify-content: space-around; padding: 5px 0; }
-        .ui-box { padding: 4px 15px; border-radius: 15px; font-weight: bold; font-size: 18px; color: #7b1fa2; background: white; box-shadow: 0 2px #ce93d8; }
+        iframe { border: none; width: 100%; height: 100px; }
 
-        /* お題の図形（こっちはフルカラー） */
-        #target-display { font-size: 80px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); transition: transform 0.3s; }
+        /* ゲーム本体エリア */
+        #game-outer { position: absolute; top: 100px; bottom: 100px; left: 0; right: 0; background: #f3e5f5; overflow: hidden; display: flex; flex-direction: column; }
+        #main-container { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; position: relative; }
+        
+        #ui-layer { width: 100%; display: flex; justify-content: space-around; padding: 5px 0; z-index: 10; }
+        .ui-box { padding: 4px 15px; border-radius: 15px; font-weight: bold; font-size: 16px; color: #7b1fa2; background: white; box-shadow: 0 2px #ce93d8; }
+
+        /* お題の図形 */
+        #target-display { font-size: 70px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); transition: transform 0.3s; margin: 20px 0; }
 
         /* 選択肢のシルエット */
-        #choices { display: flex; gap: 15px; padding: 10px; }
+        #choices { display: flex; gap: 12px; padding: 10px; justify-content: center; width: 100%; }
         .choice-btn { 
             width: 75px; height: 75px; background: #ffffff; 
             border-radius: 15px; display: flex; align-items: center; justify-content: center; 
-            font-size: 40px; cursor: pointer; box-shadow: 0 4px #ce93d8; border: 2px solid #7b1fa2;
+            font-size: 36px; cursor: pointer; box-shadow: 0 4px #ce93d8; border: 2px solid #7b1fa2;
+            -webkit-tap-highlight-color: transparent;
         }
+        .choice-btn:active { transform: translateY(2px); box-shadow: 0 2px #ce93d8; }
         
-        /* 絵文字を真っ黒なシルエットにする魔法のCSS */
-        .silhouette {
-            filter: brightness(0); /* これで真っ黒になります */
+        /* シルエット化 */
+        .silhouette { filter: brightness(0); }
+
+        /* メニュー画面：スクロール対応 */
+        #menuScreen { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.96); display: flex; flex-direction: column; 
+            align-items: center; justify-content: flex-start; z-index: 50; 
+            padding: 5px 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
         }
 
-        #end-menu { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.95); display: none; flex-direction: column; 
-            align-items: center; justify-content: center; z-index: 100; 
-        }
-        .menu-btn { width: 220px; padding: 15px; margin: 10px; font-size: 20px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; text-decoration: none; text-align: center; }
+        #ad-middle-container { width: 300px; height: 120px; background: #000; margin: 5px 0; display: none; justify-content: center; align-items: center; overflow: hidden; flex-shrink: 0; }
+
+        .menu-btn-group { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 8px; padding-bottom: 20px; }
+        .menu-btn { width: 220px; padding: 12px; font-size: 18px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; text-decoration: none; text-align: center; }
         #retry-btn { background: #9c27b0; color: white; box-shadow: 0 4px #7b1fa2; }
+        #more-games-btn { background: #ff4081; color: white; box-shadow: 0 4px #c2185b; }
     </style>
 </head>
 <body>
-    <div id="ad-top"><iframe id="frame-top" src="ad.html"></iframe></div>
-    <div id="ad-bottom"><iframe id="frame-bottom" src="ad.html"></iframe></div>
-    
-    <div id="main-container">
-        <div id="ui-layer">
-            <div id="score-display" class="ui-box">SCORE: 0</div>
-            <div id="timer-display" class="ui-box">TIME: 5.0</div>
-        </div>
-        
-        <div style="font-weight:bold; color:#7b1fa2;">同じ形の「影」を選べ！</div>
-        <div id="target-display">❓</div>
-        <div id="choices"></div>
 
-        <div id="end-menu">
-            <h2 id="result-msg" style="color:#7b1fa2; text-align:center;">Shadow Shapes</h2>
-            <button id="retry-btn" class="menu-btn" onclick="startNewGame()">スタート！</button>
-            <a href="https://saaaachi.github.io/Memory-Math/" class="menu-btn" style="background:#ff4081; color:white;">他のゲームはこちら</a>
+    <div id="ad-top"><iframe id="frame-top" src="ad.html"></iframe></div>
+
+    <div id="game-outer">
+        <div id="main-container">
+            <div id="ui-layer">
+                <div id="score-display" class="ui-box">SCORE: 0</div>
+                <div id="timer-display" class="ui-box">TIME: 5.0</div>
+            </div>
+            
+            <div style="font-weight:bold; color:#7b1fa2; margin-top: 10px; font-size: 14px;">同じ形の「影」を選べ！</div>
+            <div id="target-display">❓</div>
+            <div id="choices"></div>
+
+            <div id="menuScreen">
+                <h2 id="result-msg" style="color:#7b1fa2; margin: 10px 0; font-size: 24px;">Shadow Shapes</h2>
+                <p style="font-size: 13px; color: #666; margin: 0; text-align: center;">カラーの図形と同じ形の影をタップ！</p>
+                
+                <div id="ad-middle-container">
+                    <script src="https://adm.shinobi.jp/s/1e6de436ea850948e238e975a93767eb"></script>
+                </div>
+
+                <div class="menu-btn-group">
+                    <button id="retry-btn" class="menu-btn" onclick="startNewGame()">スタート！</button>
+                    <a href="https://saaaachi.github.io/Memory-Math/" id="more-games-btn" class="menu-btn">他のゲームはこちら</a>
+                </div>
+            </div>
         </div>
     </div>
 
+    <div id="ad-bottom"><iframe id="frame-bottom" src="ad.html"></iframe></div>
+
     <script>
         let score = 0, gameActive = false, timeLeft = 5.0, timer;
-        const shapes = ['⭐', '❤️', '🌙', '☁️', '☀️', '🌸', '💎', '🍀', '🍎', '🐱', '🦋', '🐘'];
+        const shapes = ['⭐', '❤️', '🌙', '☁️', '☀️', '🌸', '💎', '🍀', '🍎', '🐱', '🦋', '🐘', '🏠', '🚗', '🔔', '🏀'];
         let targetShape = "";
 
+        const menuScreen = document.getElementById("menuScreen");
+        const adMid = document.getElementById("ad-middle-container");
+        const resultMsg = document.getElementById("result-msg");
+        const retryBtn = document.getElementById("retry-btn");
+        const targetDisplay = document.getElementById("target-display");
+        const choicesDiv = document.getElementById("choices");
+
         function startNewGame() {
-            document.getElementById("end-menu").style.display = "none";
+            menuScreen.style.display = "none";
+            adMid.style.display = "none";
             score = 0; gameActive = true;
             nextLevel();
         }
 
         function nextLevel() {
             if(!gameActive) return;
-            // スコアが上がると時間が短くなる（最低1.2秒）
-            timeLeft = Math.max(1.2, 5.0 - (score * 0.15));
+            timeLeft = Math.max(1.1, 5.0 - (score * 0.18));
             updateUI();
             
             targetShape = shapes[Math.floor(Math.random() * shapes.length)];
-            const display = document.getElementById("target-display");
-            display.innerText = targetShape;
-            // お題を 0, 90, 180, 270度のいずれかに回転（よりパズルらしく）
+            targetDisplay.innerText = targetShape;
+            
+            // お題をランダム回転
             const rotations = [0, 90, 180, 270];
-            display.style.transform = `rotate(${rotations[Math.floor(Math.random()*4)]}deg)`;
+            targetDisplay.style.transform = `rotate(${rotations[Math.floor(Math.random()*4)]}deg)`;
 
-            const choicesDiv = document.getElementById("choices");
             choicesDiv.innerHTML = "";
             const currentChoices = [targetShape];
             while(currentChoices.length < 3) {
@@ -97,7 +127,6 @@
             currentChoices.forEach(s => {
                 const btn = document.createElement("button");
                 btn.className = "choice-btn";
-                // spanタグを入れて、その中の絵文字だけを真っ黒にする
                 btn.innerHTML = `<span class="silhouette">${s}</span>`;
                 btn.onclick = () => check(s);
                 choicesDiv.appendChild(btn);
@@ -129,17 +158,22 @@
         function gameOver(msg) {
             gameActive = false;
             clearInterval(timer);
-            document.getElementById("result-msg").innerText = msg + "\nSCORE: " + score;
-            document.getElementById("end-menu").style.display = "flex";
+            resultMsg.innerText = msg + "\nSCORE: " + score;
+            retryBtn.innerText = "もう一度遊ぶ";
+            adMid.style.display = "flex";
+            menuScreen.style.display = "flex";
+            menuScreen.scrollTop = 0;
         }
 
         function refreshAds() {
-            document.getElementById('frame-top').src += "";
-            document.getElementById('frame-bottom').src += "";
+            const t = document.getElementById('frame-top');
+            const b = document.getElementById('frame-bottom');
+            if(t) t.src = t.src;
+            if(b) b.src = b.src;
         }
         setInterval(refreshAds, 30000);
 
-        window.onload = () => { document.getElementById("end-menu").style.display = "flex"; };
+        window.onload = () => { menuScreen.style.display = "flex"; };
     </script>
 </body>
 </html>
