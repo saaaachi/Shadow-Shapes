@@ -3,73 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Shadow Shapes - v26.3</title>
+    <title>Shadow Shapes - Silhouette Quiz</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1299640300068792" crossorigin="anonymous"></script>
     <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; background: #f3e5f5; font-family: sans-serif; touch-action: none; position: fixed; width: 100%; height: 100%; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; position: fixed; touch-action: none; }
+        body { background: #f3e5f5; font-family: 'Hiragino Sans', 'Meiryo', sans-serif; display: flex; flex-direction: column; }
         
-        /* 広告枠：150px (共通仕様) */
-        #ad-top, #ad-bottom { position: fixed; left: 0; width: 100%; height: 150px; background: #333; z-index: 100; display: flex; align-items: center; justify-content: center; }
-        #ad-top { top: 0; border-bottom: 1px solid #444; } 
-        #ad-bottom { bottom: 0; border-top: 1px solid #444; }
-        iframe { border: none; width: 100%; height: 150px; background: #333; }
+        /* 上部広告：100px 固定 */
+        #ad-top { width: 100%; height: 100px; background: #263238; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 100; border-bottom: 3px solid #9c27b0; }
 
-        /* ゲーム本体エリア */
-        #game-outer { position: absolute; top: 150px; bottom: 150px; left: 0; right: 0; background: #f3e5f5; overflow: hidden; display: flex; flex-direction: column; }
-        #main-container { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; position: relative; }
+        /* ゲームエリア */
+        #game-outer { flex-grow: 1; position: relative; width: 100%; background: #f3e5f5; overflow: hidden; }
+        #main-container { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
         
-        #ui-layer { width: 100%; display: flex; justify-content: space-around; padding: 5px 0; z-index: 10; }
-        .ui-box { padding: 4px 15px; border-radius: 15px; font-weight: bold; font-size: 16px; color: #7b1fa2; background: white; box-shadow: 0 2px #ce93d8; }
+        #ui-layer { position: absolute; top: 15px; width: 100%; display: flex; justify-content: space-around; z-index: 10; }
+        .ui-box { padding: 6px 18px; border-radius: 20px; font-weight: bold; font-size: 18px; color: #7b1fa2; background: white; box-shadow: 0 3px #ce93d8; }
 
-        #target-display { font-size: 70px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); transition: transform 0.3s; margin: 20px 0; }
+        #target-display { font-size: 85px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); transition: transform 0.2s; margin: 30px 0; }
 
-        #choices { display: flex; gap: 12px; padding: 10px; justify-content: center; width: 100%; }
+        #choices { display: flex; gap: 15px; padding: 15px; justify-content: center; width: 100%; }
         .choice-btn { 
-            width: 75px; height: 75px; background: #ffffff; 
-            border-radius: 15px; display: flex; align-items: center; justify-content: center; 
-            font-size: 36px; cursor: pointer; box-shadow: 0 4px #ce93d8; border: 2px solid #7b1fa2;
-            -webkit-tap-highlight-color: transparent;
+            width: 85px; height: 85px; background: #ffffff; 
+            border-radius: 20px; display: flex; align-items: center; justify-content: center; 
+            font-size: 42px; cursor: pointer; box-shadow: 0 5px #ce93d8; border: 2px solid #7b1fa2;
         }
-        .choice-btn:active { transform: translateY(2px); box-shadow: 0 2px #ce93d8; }
+        .choice-btn:active { transform: translateY(4px); box-shadow: none; }
         .silhouette { filter: brightness(0); }
 
         /* メニュー画面 */
         #menuScreen { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.96); display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; z-index: 200; 
-            padding: 20px 0;
+            background: rgba(255,255,255,0.97); display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 500; padding: 20px; 
         }
 
-        #ad-middle-container { 
-            width: 320px; height: 100px; background: #eee; margin: 15px 0; 
-            display: none; justify-content: center; align-items: center; 
-            overflow: hidden; flex-shrink: 0; border: 1px solid #ddd;
-            transition: opacity 0.3s;
+        /* 【収益】300x250 レクタングル */
+        #ad-middle-box {
+            width: 300px; height: 250px; background: #f5f5f5;
+            margin: 15px 0; display: none; justify-content: center; align-items: center;
+            border-radius: 12px; border: 1px solid #e1bee7; overflow: hidden;
         }
 
-        .menu-btn-group { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 12px; }
-        .menu-btn { width: 240px; padding: 15px; font-size: 18px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; text-decoration: none; text-align: center; transition: 0.2s; }
-        #retry-btn { background: #9c27b0; color: white; box-shadow: 0 4px #7b1fa2; }
-        #retry-btn:disabled { background: #ccc; color: #888; box-shadow: none; cursor: default; }
-        #more-games-btn { background: #ff4081; color: white; box-shadow: 0 4px #c2185b; }
+        .menu-btn-group { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 15px; }
+        .menu-btn { width: 270px; padding: 18px; font-size: 20px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; text-decoration: none; text-align: center; transition: 0.2s; }
+        #retry-btn { background: #9c27b0; color: white; box-shadow: 0 5px #7b1fa2; }
+        #retry-btn:disabled { background: #ccc; box-shadow: none; color: #888; }
+        .sub-btn { background: #ff4081; color: white; box-shadow: 0 5px #c2185b; font-size: 16px; }
 
-        /* 大広告用カウントダウン付き */
-        #bigAdScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; justify-content: center; align-items: center; }
-        .ad-frame-wrapper { width: 95%; height: 85%; position: relative; }
-        .ad-close-btn { 
-            position: absolute; top: -15px; right: -15px; 
-            color: white; font-size: 22px; font-weight: bold; 
-            cursor: pointer; background: rgba(0,0,0,0.8); 
-            width: 44px; height: 44px; border-radius: 50%; 
-            display: none; align-items: center; justify-content: center; 
-            z-index: 3100; border: 2px solid white; font-family: sans-serif;
-        }
+        /* インタースティシャル */
+        #inter-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 99999; align-items: center; justify-content: center; }
+        .inter-content { width: 330px; height: 350px; background: #fff; position: relative; border-radius: 15px; }
+        #close-ad-btn { position: absolute; top: -55px; right: 0; width: 45px; height: 45px; background: #333; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid #fff; cursor: pointer; }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
-    <div id="ad-top"><iframe id="frame-top" src="./ad.html?pos=top"></iframe></div>
+    <div id="ad-top">
+        <ins class="adsbygoogle" style="display:inline-block;width:320px;height:100px" data-ad-client="ca-pub-1299640300068792" data-ad-slot="3972022911"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
 
     <div id="game-outer">
         <div id="main-container">
@@ -78,49 +71,44 @@
                 <div id="timer-display" class="ui-box">TIME: 5.0</div>
             </div>
             
-            <div style="font-weight:bold; color:#7b1fa2; margin-top: 10px; font-size: 14px;">同じ形の「影」を選べ！</div>
             <div id="target-display">❓</div>
             <div id="choices"></div>
 
             <div id="menuScreen">
-                <h2 id="result-msg" style="color:#7b1fa2; margin: 10px 0; font-size: 24px; text-align: center;">Shadow Shapes</h2>
-                <p id="sub-msg" style="font-size: 13px; color: #666; margin: 0 0 10px 0; text-align: center;">カラーの図形と同じ形の影をタップ！</p>
+                <h2 id="result-msg" style="color:#7b1fa2; margin: 5px 0; font-size: 32px;">Shadow Shapes</h2>
+                <p id="sub-msg" style="margin:5px 0; font-size: 16px; color: #666; font-weight: bold; text-align: center; line-height: 1.4;">同じ形の「影」をタップ！<br>脳をフル回転させろ！</p>
                 
-                <div id="ad-middle-container">
-                    <div id="im-8b492cea6667490da71c488bdcc7cfc8">
-                        <script async src="https://imp-adedge.i-mobile.co.jp/script/v1/spot.js?20220104"></script>
-                        <script>(window.adsbyimobile=window.adsbyimobile||[]).push({pid:84561,mid:590804,asid:1924211,type:"banner",display:"inline",elementid:"im-8b492cea6667490da71c488bdcc7cfc8"})</script>
-                    </div>
+                <div id="ad-middle-box">
+                    <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-1299640300068792" data-ad-slot="9050127185"></ins>
+                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
                 </div>
 
                 <div class="menu-btn-group">
-                    <button id="retry-btn" class="menu-btn" onclick="startNewGame()">スタート！</button>
-                    <a href="https://saaaachi.github.io/" id="more-games-btn" class="menu-btn">他のゲームはこちら</a>
+                    <button id="retry-btn" class="menu-btn" onclick="startNewGame()">★ スタート！ ★</button>
+                    <a href="https://saaaachi.github.io/" class="sub-btn menu-btn">他のゲームで遊ぶ</a>
                 </div>
             </div>
 
-            <div id="bigAdScreen">
-                <div class="ad-frame-wrapper">
-                    <div id="ad-close-btn" class="ad-close-btn" onclick="closeBigAd()"></div>
-                    <iframe id="ad-large-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
+            <div id="inter-screen">
+                <div class="inter-content">
+                    <div id="close-ad-btn" onclick="closeInterAd()">5</div>
+                    <iframe id="ifr-inter" src="about:blank" style="width:100%; height:100%; border:none; border-radius:15px; background:#fff;"></iframe>
                 </div>
             </div>
         </div>
     </div>
-
-    <div id="ad-bottom"><iframe id="frame-bottom" src="./ad.html?pos=bottom"></iframe></div>
 
     <script>
         let score = 0, gameActive = false, timeLeft = 5.0, timer, playCount = 0;
         const shapes = ['⭐', '❤️', '🌙', '☁️', '☀️', '🌸', '💎', '🍀', '🍎', '🐱', '🦋', '🐘', '🏠', '🚗', '🔔', '🏀'];
         let targetShape = "";
 
-        const menuScreen = document.getElementById("menuScreen");
-        const adMid = document.getElementById("ad-middle-container");
-        const resultMsg = document.getElementById("result-msg");
-        const retryBtn = document.getElementById("retry-btn");
-        const targetDisplay = document.getElementById("target-display");
-        const choicesDiv = document.getElementById("choices");
+        const menuScreen = document.getElementById("menuScreen"),
+              adMid = document.getElementById("ad-middle-box"),
+              resultMsg = document.getElementById("result-msg"),
+              retryBtn = document.getElementById("retry-btn"),
+              targetDisplay = document.getElementById("target-display"),
+              choicesDiv = document.getElementById("choices");
 
         function startNewGame() {
             menuScreen.style.display = "none";
@@ -131,12 +119,14 @@
 
         function nextLevel() {
             if(!gameActive) return;
-            timeLeft = Math.max(1.1, 5.0 - (score * 0.18));
+            // スコアに応じて制限時間を短縮
+            timeLeft = Math.max(1.0, 5.0 - (score * 0.15));
             updateUI();
             
             targetShape = shapes[Math.floor(Math.random() * shapes.length)];
             targetDisplay.innerText = targetShape;
             
+            // ターゲットをランダムに回転させて難易度アップ
             const rotations = [0, 90, 180, 270];
             targetDisplay.style.transform = `rotate(${rotations[Math.floor(Math.random()*4)]}deg)`;
 
@@ -184,58 +174,49 @@
             playCount++;
             clearInterval(timer);
 
-            // --- ✨ 誤タップ防止ガード発動 (1.5秒) ---
+            resultMsg.innerText = "GAME OVER";
+            document.getElementById("sub-msg").innerHTML = msg + "<br>SCORE: " + score;
+            
             retryBtn.innerText = "お待ちください...";
             retryBtn.disabled = true;
             adMid.style.display = "flex";
-            adMid.style.pointerEvents = "none";
-            adMid.style.opacity = "0.4";
-
-            resultMsg.innerText = "GAME OVER";
-            document.getElementById("sub-msg").innerText = msg + "\nSCORE: " + score;
             menuScreen.style.display = "flex";
-            menuScreen.scrollTop = 0;
 
+            // 1.5秒の誤タップ防止ガード
             setTimeout(() => {
-                adMid.style.pointerEvents = "auto";
-                adMid.style.opacity = "1";
                 retryBtn.disabled = false;
                 retryBtn.innerText = "もう一度遊ぶ";
             }, 1500);
 
-            // 大広告判定
-            if (playCount === 3 || (playCount > 3 && (playCount - 3) % 7 === 0)) {
-                setTimeout(showBigAd, 500);
+            // 3回ごとにインタースティシャル
+            if (playCount % 3 === 0) {
+                setTimeout(showInterAd, 500);
             }
         }
 
-        function showBigAd() {
-            const screen = document.getElementById("bigAdScreen");
-            const closeBtn = document.getElementById("ad-close-btn");
-            document.getElementById("ad-large-frame").src = "./ad.large.html?t=" + Date.now();
+        function showInterAd() {
+            const screen = document.getElementById("inter-screen"), 
+                  closeBtn = document.getElementById("close-ad-btn"), 
+                  ifr = document.getElementById('ifr-inter');
+            ifr.src = './ad.large.html?v=' + Date.now();
             screen.style.display = "flex";
-            
-            let countdown = 5;
-            closeBtn.style.display = "flex";
-            closeBtn.innerText = countdown;
+            let count = 5;
+            closeBtn.innerText = count;
             closeBtn.style.pointerEvents = "none";
-            closeBtn.style.opacity = "0.7";
-
-            const timerInt = setInterval(() => {
-                countdown--;
-                closeBtn.innerText = countdown;
-                if (countdown <= 0) {
-                    clearInterval(timerInt);
+            const itv = setInterval(() => {
+                count--;
+                if(count > 0) closeBtn.innerText = count;
+                else {
+                    clearInterval(itv);
                     closeBtn.innerText = "×";
                     closeBtn.style.pointerEvents = "auto";
-                    closeBtn.style.opacity = "1";
                 }
             }, 1000);
         }
 
-        function closeBigAd() {
-            document.getElementById("bigAdScreen").style.display = "none";
-            document.getElementById("ad-large-frame").src = "";
+        function closeInterAd() {
+            document.getElementById("inter-screen").style.display = "none";
+            document.getElementById('ifr-inter').src = 'about:blank';
         }
 
         window.onload = () => { menuScreen.style.display = "flex"; };
